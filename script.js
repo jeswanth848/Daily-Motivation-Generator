@@ -10,19 +10,17 @@ const copyBtn = document.getElementById('copy-btn');
 const newQuoteBtn = document.getElementById('new-quote-btn');
 const loader = document.getElementById('loader');
 
-// Gemini API Configuration
-const GOOGLE_API_KEY = "AIzaSyD3EPRaxlHvlMGoy0dUIkJ0E2w3ydjIfHQ"; // Your API key from Google AI Studio
+const GOOGLE_API_KEY = "AIzaSyD3EPRaxlHvlMGoy0dUIkJ0E2w3ydjIfHQ";
 const GOOGLE_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
+let lastMood = '';
 
 // Event Listeners
 moodForm.addEventListener('submit', handleFormSubmit);
 copyBtn.addEventListener('click', copyQuote);
 newQuoteBtn.addEventListener('click', generateNewQuote);
 
-// Store last mood
-let lastMood = '';
-
-// Handle form submit
+// Handle form submission
 async function handleFormSubmit(e) {
   e.preventDefault();
   const mood = (customMood.value.trim() || moodSelect.value).trim();
@@ -31,28 +29,32 @@ async function handleFormSubmit(e) {
   await generateQuote(mood);
 }
 
-// New quote on same mood
+// Generate new quote with previous mood
 async function generateNewQuote() {
-  return lastMood ? generateQuote(lastMood) : alert('Generate one first!');
+  if (!lastMood) return alert('Generate one first!');
+  await generateQuote(lastMood);
 }
 
-// UI Helpers
+// Show loading animation
 function showLoader() {
   loader.style.display = 'flex';
   quoteContent.style.display = 'none';
   copyBtn.style.display = 'none';
   newQuoteBtn.style.display = 'none';
 }
+
+// Hide loading animation
 function hideLoader() {
   loader.style.display = 'none';
   quoteContent.style.display = 'block';
   copyBtn.style.display = newQuoteBtn.style.display = 'inline-block';
 }
 
-// Fetch quote
+// Generate quote from Gemini API
 async function generateQuote(mood) {
   quoteContainer.style.display = 'block';
   showLoader();
+
   try {
     const prompt = `Create a short motivational quote for someone feeling ${mood}. Format: "Quote"`;
 
@@ -75,15 +77,16 @@ async function generateQuote(mood) {
     });
 
     if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(`HTTP ${resp.status}: ${text}`);
+      const errorText = await resp.text();
+      console.error('API Error:', errorText);
+      throw new Error(`HTTP ${resp.status}: ${errorText}`);
     }
 
     const data = await resp.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No quote returned';
-    const [quote] = raw.split('|').map(x => x.trim());
+    console.log('API Response:', data);
 
-    quoteText.textContent = quote || raw || 'No quote 🫥';
+    const quote = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No quote 🫥';
+    quoteText.textContent = quote;
   } catch (err) {
     console.error('Error generating quote:', err);
     quoteText.textContent = 'Could not generate a quote. Try again later.';
@@ -92,29 +95,28 @@ async function generateQuote(mood) {
   }
 }
 
-// Copy functionality
+// Copy quote to clipboard
 function copyQuote() {
   const text = quoteText.textContent;
   navigator.clipboard.writeText(text)
     .then(() => {
       const orig = copyBtn.textContent;
       copyBtn.textContent = 'Copied!';
-      copyBtn.style.backgroundColor = 'var(--success-color)';
+      copyBtn.style.backgroundColor = 'green';
       setTimeout(() => {
         copyBtn.textContent = orig;
-        copyBtn.style.backgroundColor = 'var(--secondary-color)';
+        copyBtn.style.backgroundColor = '';
       }, 2000);
     })
     .catch(() => alert('Copy failed'));
 }
 
-// Page load fade-in
+// Page fade-in
 document.addEventListener('DOMContentLoaded', () => {
   const c = document.querySelector('.container');
   if (c) {
     c.style.opacity = 0;
     setTimeout(() => {
-      c.style.transition = 'opacity 0.5s ease';
       c.style.opacity = 1;
     }, 100);
   }
