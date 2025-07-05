@@ -11,7 +11,7 @@ const newQuoteBtn = document.getElementById('new-quote-btn');
 const loader = document.getElementById('loader');
 
 // Gemini API Configuration - No token required for client-side requests with proper restrictions
-const GOOGLE_API_KEY = "AIzaSyAbvbD5WDswpbPOWYlT1VBQdecerUz9atA"; // Your API key from Google AI Studio
+const GOOGLE_API_KEY = "AIzaSyD3EPRaxlHvlMGoy0dUIkJ0E2w3ydjIfHQ"; // Your API key from Google AI Studio
 const GOOGLE_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 // Event Listeners
