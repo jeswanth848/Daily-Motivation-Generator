@@ -10,7 +10,7 @@ const copyBtn = document.getElementById('copy-btn');
 const newQuoteBtn = document.getElementById('new-quote-btn');
 const loader = document.getElementById('loader');
 
-// Gemini API Configuration - No token required for client-side requests with proper restrictions
+// Gemini API Configuration
 const GOOGLE_API_KEY = "AIzaSyD3EPRaxlHvlMGoy0dUIkJ0E2w3ydjIfHQ"; // Your API key from Google AI Studio
 const GOOGLE_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
@@ -54,9 +54,9 @@ async function generateQuote(mood) {
   quoteContainer.style.display = 'block';
   showLoader();
   try {
-    const prompt = Create a short motivational quote for someone feeling ${mood}. Format: "Quote";
+    const prompt = `Create a short motivational quote for someone feeling ${mood}. Format: "Quote"`;
 
-    const resp = await fetch(${GOOGLE_API_URL}?key=${GOOGLE_API_KEY}, {
+    const resp = await fetch(`${GOOGLE_API_URL}?key=${GOOGLE_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -76,11 +76,11 @@ async function generateQuote(mood) {
 
     if (!resp.ok) {
       const text = await resp.text();
-      throw new Error(HTTP ${resp.status}: ${text});
+      throw new Error(`HTTP ${resp.status}: ${text}`);
     }
 
     const data = await resp.json();
-    const raw = data.candidates[0].content.parts[0].text;
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No quote returned';
     const [quote] = raw.split('|').map(x => x.trim());
 
     quoteText.textContent = quote || raw || 'No quote 🫥';
@@ -94,7 +94,7 @@ async function generateQuote(mood) {
 
 // Copy functionality
 function copyQuote() {
-  const text = "${quoteText.textContent}";
+  const text = quoteText.textContent;
   navigator.clipboard.writeText(text)
     .then(() => {
       const orig = copyBtn.textContent;
@@ -111,9 +111,11 @@ function copyQuote() {
 // Page load fade-in
 document.addEventListener('DOMContentLoaded', () => {
   const c = document.querySelector('.container');
-  c.style.opacity = 0;
-  setTimeout(() => {
-    c.style.transition = 'opacity 0.5s ease';
-    c.style.opacity = 1;
-  }, 100);
+  if (c) {
+    c.style.opacity = 0;
+    setTimeout(() => {
+      c.style.transition = 'opacity 0.5s ease';
+      c.style.opacity = 1;
+    }, 100);
+  }
 });
